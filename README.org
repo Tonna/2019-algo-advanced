@@ -1,0 +1,13 @@
+* Test cases
+ 
+  Test case naming proposal.  
+  Instead of lastname person can use other identifier.
+
+  - how test case input file is named  
+
+    [Authors lastname]-[number].in 
+  
+  - how test case expected output is named  
+
+    [Authors lastname]-[number].out
+  
