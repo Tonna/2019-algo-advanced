@@ -12,8 +12,15 @@ def create_tree(n):
 
 
 if __name__ == '__main__':
-  random.seed(7)
   n = int(sys.argv[1])
+  
+  #setting seed if it was passed, otherwise use default
+  if len(sys.argv) == 2:
+    s = 7
+  else:
+    s = int(sys.argv[2])
+
+  random.seed(s)
   print(n)
   print(" ".join(map(lambda x: str(x),create_tree(n))))
   test_cases = random.randint(1,10)
