@@ -26,5 +26,5 @@ if __name__ == '__main__':
   test_cases = random.randint(1,10)
   print(test_cases)
   for i in range(0, test_cases):
-    print("%d %d" % (random.randint(1,n), random.randint(0,100000)))
+    print("%d %d" % (random.randint(1,n), random.randint(0,int(100000 / test_cases))))
 
