@@ -5,67 +5,73 @@ import org.junit.runners.Parameterized;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
-import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
+import static java.nio.file.Files.list;
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class Hw1Task1Test {
+public class TestTemplate2 {
 
-    static final String TEST_CASES_PATH = "src/test/resources/hw01-task01/";
-    private Hw1Task1Try1 task;
+    private static final String TEST_CASES_PATH = "C:";
+	    //Input test data directory here
+            //"src/test/resources/hw01-task01/";
+
+    private TaskTemplate2 task;
     private int[] input;
     private long[] output;
     private ArrayList<Long> result;
     private String caseName;
 
 
-    public Hw1Task1Test(String caseName, int[] input, long[] output) {
+    public TestTemplate2(String caseName, int[] input, long[] output) {
         this.caseName = caseName;
         this.input = input;
         this.output = output;
     }
 
-    @Parameterized.Parameters(name = "{index} - {0}")
+    @Parameters(name = "{index} - {0}")
     public static Iterable<Object[]> data() throws IOException {
 
-        Path path = Paths.get(TEST_CASES_PATH);
-        List<String> list = Files.list(path)
+        List<String> testCases = list(Paths.get(TEST_CASES_PATH))
+                //magic to get file name without mask
                 .map(p -> p.toString().split("/")[4].split("\\.")[0])
-                .distinct().sorted().collect(Collectors.toList());
+                .distinct().sorted().collect(toList());
 
-        //System.out.println(list);
+        //System.out.println(testCases);
 
-        Object[][] data = new Object[list.size()][];
+        Object[][] data = new Object[testCases.size()][];
 
-        for (int i = 0; i < list.size(); i++) {
+        for (int i = 0; i < testCases.size(); i++) {
             Object[] arr = new Object[3];
-            arr[0] = list.get(i);
+            arr[0] = testCases.get(i);
             arr[1] =
-                    readValues(list.get(i), ".in").stream().mapToInt(Integer::intValue).toArray();
+                    read(testCases.get(i), ".in").stream().mapToInt(Long::intValue).toArray();
             arr[2] =
-                    readValues(list.get(i), ".out").stream().mapToLong(Integer::longValue).toArray();
+                    read(testCases.get(i), ".out").stream().mapToLong(Long::longValue).toArray();
             data[i] = arr;
         }
 
         return Arrays.asList(data);
     }
 
-    private static ArrayList<Integer> readValues(String file, String suffix) throws IOException {
+    private static ArrayList<Long> read(String file, String suffix) throws IOException {
         //FixMe this magic will fail if not intellij is used
         Scanner reader = new Scanner(Files.newBufferedReader(
-                Paths.get(TEST_CASES_PATH + file + suffix)));
+                Paths.get(TEST_CASES_PATH, file + suffix)));
 
-        ArrayList<Integer> out = new ArrayList<>();
+        ArrayList<Long> out = new ArrayList<>();
 
         while (reader.hasNext()) {
-            out.add(reader.nextInt());
+            out.add(reader.nextLong());
         }
 
         return out;
@@ -76,20 +82,18 @@ public class Hw1Task1Test {
     public void init() throws FileNotFoundException {
         result = new ArrayList<>();
         //System.out is magic, don't know how it works, but it is not needed
-        PrintStream mockOutputStream = new PrintStream(System.out) {
+        task = new TaskTemplate2(new PrintWriter(System.out) {
             @Override
             public void println(long l) {
                 result.add(l);
             }
-        };
-        task = new Hw1Task1Try1(mockOutputStream);
+        });
     }
 
     private void writeTestDataToInputStream(int[] input) {
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < input.length; i++) {
-            buf.append(input[i]);
-            buf.append("\n");
+            buf.append(input[i]).append(" ");
         }
         //System.out.println(buf);
         InputStream in = new ByteArrayInputStream(buf.toString().getBytes());
@@ -101,31 +105,25 @@ public class Hw1Task1Test {
         for (int i = 0; i < result.size(); i++) {
             out[i] = result.get(i);
         }
-        //printResult(out);
+        printResult(out);
         return out;
     }
 
     //optional, may be useful for debug
     private void printResult(long[] result) {
-        System.out.println("expected");
-        for (int k = 0; k < output.length; k++) {
-            System.out.print(output[k] + " ");
-        }
+        System.out.println("\nexpected");
+        LongStream.of(output).forEach(l -> System.out.print(l + " "));
+        System.out.println("\nactual");
+        LongStream.of(result).forEach(l -> System.out.print(l + " "));
         System.out.println();
-        System.out.println("actual");
-        for (int k = 0; k < result.length; k++) {
-            System.out.print(result[k] + " ");
-        }
-        System.out.println();
-
-
     }
 
     @Test
     public void test1() throws IOException {
         writeTestDataToInputStream(input);
-        task.doStuff();
+        assertTimeout(java.time.Duration.ofMillis(250), () -> {
+            task.doStuff();
+        });
         assertArrayEquals(output, getResult());
     }
-
 }
